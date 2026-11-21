@@ -1,0 +1,100 @@
+client: client_d
+spec_version: v1
+dataset_name: egocentric_phone_sessions
+format: webdataset
+format_version: wds_v1
+
+selection:
+  sources:
+    - rigsim_phone
+  tasks: null
+  require_success: false
+  min_qa_verdict: PASS
+  episode_length_bounds_sec: [10.0, 30.0]
+  max_episodes: 500
+  balance_per_task: false
+
+timing:
+  target_fps: 30.0
+  resampling_method_state: nearest
+  resampling_method_rotation: nearest
+  resampling_method_action: nearest
+  resampling_method_camera: nearest
+  max_timestamp_error_ms: 33.3
+
+cameras:
+  phone_rgb:
+    target_key: video
+    resolution: [1280, 720]
+    resize_mode: letterbox
+    color_space: rgb
+    dtype: uint8
+    codec: hevc
+    crf: 23
+    pixel_format: yuv420p
+
+state:
+  include_fields: []
+  order: []
+  units_length: m
+  units_angle: rad
+  target_key: state
+
+action:
+  representation: ee_delta_pose
+  rotation_format: quat_xyzw
+  units_length: m
+  units_angle: rad
+  gripper_convention: zero_to_one
+  gripper_inverted: false
+  target_key: action
+
+frames:
+  target_base_frame: phone_body
+  camera_convention: opencv
+  handedness: right
+
+trimming:
+  trim_idle_start: false
+  trim_idle_end: false
+  velocity_threshold: 0.0
+  padding_steps: 0
+
+language:
+  target_key: description
+  paraphrase_augmentation: false
+
+splits:
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  split_by: episode
+  stratify_by_task: false
+  seed: 42
+  leakage_check: false
+
+statistics:
+  compute_stats: false
+  target_keys: []
+  metrics: []
+
+packaging:
+  sharding_max_episodes_per_shard: 50
+  sharding_max_size_mb: 1000
+  compression: none
+  generate_datacard: true
+
+delivery:
+  bucket: robotics-data-lake
+  prefix: client_d/egocentric
+  release_naming: "v{n}"
+  checksum_algorithm: sha256
+  manifest_format: both
+  compression_for_upload: none
+
+acceptance_criteria:
+  max_loader_failure_rate: 0.0
+  max_timestamp_error_ms: 33.3
+  min_episodes_delivered_ratio: 0.95
+  verify_stats_roundtrip: false
+

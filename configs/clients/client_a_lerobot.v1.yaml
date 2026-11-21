@@ -1,0 +1,123 @@
+client: client_a
+spec_version: v1
+dataset_name: panda_tabletop_lerobot
+format: lerobot
+format_version: v3.0
+
+selection:
+  sources:
+    - generated_mujoco
+  tasks:
+    - pick_place
+    - push
+    - stack
+  require_success: true
+  min_qa_verdict: PASS
+  max_episodes: 1000
+  balance_per_task: true
+
+timing:
+  target_fps: 30.0
+  resampling_method_state: linear
+  resampling_method_rotation: slerp
+  resampling_method_action: zoh
+  resampling_method_camera: nearest
+  max_timestamp_error_ms: 16.7
+
+cameras:
+  front:
+    target_key: observation.images.top
+    resolution: [256, 256]
+    resize_mode: center_crop
+    color_space: rgb
+    dtype: uint8
+    codec: av1
+    crf: 28
+    pixel_format: yuv420p
+  wrist:
+    target_key: observation.images.wrist
+    resolution: [256, 256]
+    resize_mode: center_crop
+    color_space: rgb
+    dtype: uint8
+    codec: av1
+    crf: 28
+    pixel_format: yuv420p
+
+state:
+  include_fields:
+    - joint_positions
+    - gripper_width
+  order:
+    - joint_positions
+    - gripper_width
+  units_length: m
+  units_angle: rad
+  target_key: observation.state
+
+action:
+  representation: joint_pos
+  rotation_format: quat_xyzw
+  units_length: m
+  units_angle: rad
+  gripper_convention: zero_to_one
+  gripper_inverted: false
+  target_key: action
+
+frames:
+  target_base_frame: robot_base
+  camera_convention: opencv
+  handedness: right
+
+trimming:
+  trim_idle_start: true
+  trim_idle_end: true
+  velocity_threshold: 0.01
+  padding_steps: 2
+
+language:
+  target_key: task
+  paraphrase_augmentation: false
+
+splits:
+  train_ratio: 0.8
+  val_ratio: 0.1
+  test_ratio: 0.1
+  split_by: episode
+  stratify_by_task: true
+  seed: 42
+  leakage_check: true
+
+statistics:
+  compute_stats: true
+  target_keys:
+    - observation.state
+    - action
+  metrics:
+    - mean
+    - std
+    - min
+    - max
+    - q01
+    - q99
+
+packaging:
+  sharding_max_episodes_per_shard: 1000
+  sharding_max_size_mb: 2000
+  compression: none
+  generate_datacard: true
+
+delivery:
+  bucket: robotics-data-lake
+  prefix: client_a/lerobot
+  release_naming: "v{n}"
+  checksum_algorithm: sha256
+  manifest_format: both
+  compression_for_upload: none
+
+acceptance_criteria:
+  max_loader_failure_rate: 0.0
+  max_timestamp_error_ms: 16.7
+  min_episodes_delivered_ratio: 0.95
+  verify_stats_roundtrip: true
+
