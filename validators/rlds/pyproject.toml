@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "episodeforge-validator-rlds"
+version = "0.1.0"
+description = "Isolated validator for RLDS / Open X-Embodiment datasets"
+requires-python = ">=3.11"
+dependencies = [
+    "pydantic>=2.7.0",
+]
+
+[project.optional-dependencies]
+official = [
+    "tensorflow>=2.15.0",
+    "tensorflow-datasets>=4.9.3",
+    "rlds>=0.1.8",
+]
+

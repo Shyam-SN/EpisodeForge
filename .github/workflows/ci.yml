@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, cleanup/job-ready ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Test Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        python-version: [ "3.11", "3.12" ]
+        include:
+          - os: macos-14
+            python-version: "3.11"
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies (Linux)
+        if: runner.os == Linux
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgl1-mesa-dev libgl1-mesa-glx libosmesa6-dev libglew-dev libegl1-mesa ffmpeg
+
+      - name: Install system dependencies (macOS)
+        if: runner.os == macOS
+        run: |
+          brew install ffmpeg
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v3
+        with:
+          version: "latest"
+          enable-cache: true
+
+      - name: Set up Python ${{ matrix.python-version }}
+        run: |
+          uv python install ${{ matrix.python-version }}
+          uv sync --all-extras --python ${{ matrix.python-version }}
+
+      - name: Lint with Ruff
+        run: |
+          uv run ruff check src/ tests/ configs/
+
+      - name: Type check with mypy
+        run: |
+          uv run mypy src/ tests/
+
+      - name: Run unit tests with coverage
+        run: |
+          uv run pytest tests/ -v --cov=src/episodeforge --cov-report=term-missing
+
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -t episodeforge:latest .

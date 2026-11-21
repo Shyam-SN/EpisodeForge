@@ -1,0 +1,120 @@
+client: client_c
+spec_version: v1
+dataset_name: panda_tabletop_robomimic
+format: robomimic_hdf5
+format_version: robomimic_v0.2
+
+selection:
+  sources:
+    - generated_mujoco
+  tasks:
+    - pick_place
+    - push
+    - stack
+  require_success: false
+  min_qa_verdict: WARN
+  max_episodes: 1000
+  balance_per_task: true
+
+timing:
+  target_fps: 20.0
+  resampling_method_state: linear
+  resampling_method_rotation: slerp
+  resampling_method_action: zoh
+  resampling_method_camera: nearest
+  max_timestamp_error_ms: 25.0
+
+cameras:
+  front:
+    target_key: agentview_image
+    resolution: [84, 84]
+    resize_mode: center_crop
+    color_space: rgb
+    dtype: uint8
+    codec: raw
+    pixel_format: rgb24
+  wrist:
+    target_key: robot0_eye_in_hand_image
+    resolution: [84, 84]
+    resize_mode: center_crop
+    color_space: rgb
+    dtype: uint8
+    codec: raw
+    pixel_format: rgb24
+
+state:
+  include_fields:
+    - joint_positions
+    - gripper_width
+  order:
+    - joint_positions
+    - gripper_width
+  units_length: m
+  units_angle: rad
+  target_key: states
+
+action:
+  representation: ee_delta_pose
+  rotation_format: axis_angle
+  units_length: m
+  units_angle: rad
+  gripper_convention: minus_one_to_one
+  gripper_inverted: false
+  clip_range: [-1.0, 1.0]
+  target_key: actions
+
+frames:
+  target_base_frame: robot_base
+  camera_convention: opencv
+  handedness: right
+
+trimming:
+  trim_idle_start: false
+  trim_idle_end: false
+  velocity_threshold: 0.01
+  padding_steps: 0
+
+language:
+  target_key: task
+  paraphrase_augmentation: false
+
+splits:
+  train_ratio: 0.8
+  val_ratio: 0.2
+  test_ratio: 0.0
+  split_by: episode
+  stratify_by_task: true
+  seed: 42
+  leakage_check: true
+
+statistics:
+  compute_stats: true
+  target_keys:
+    - actions
+    - states
+  metrics:
+    - mean
+    - std
+    - min
+    - max
+
+packaging:
+  sharding_max_episodes_per_shard: 1000
+  sharding_max_size_mb: 4000
+  compression: gzip
+  generate_datacard: true
+
+delivery:
+  bucket: robotics-data-lake
+  prefix: client_c/robomimic
+  release_naming: "v{n}"
+  checksum_algorithm: sha256
+  manifest_format: both
+  compression_for_upload: none
+
+acceptance_criteria:
+  max_loader_failure_rate: 0.0
+  max_timestamp_error_ms: 25.0
+  min_episodes_delivered_ratio: 0.95
+  verify_stats_roundtrip: true
+

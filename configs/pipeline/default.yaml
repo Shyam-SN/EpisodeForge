@@ -1,0 +1,20 @@
+pipeline_name: episodeforge_standard
+version: 0.1.0
+
+execution:
+  backend: local
+  workers: 4
+  batch_size: 16
+  max_in_flight: 32
+  max_retries: 3
+  retry_backoff_sec: 0.5
+
+cache:
+  enabled: true
+  cache_dir: data/cache
+
+dead_letter_dir: data/rejected
+staging_dir: data/staging
+releases_dir: data/releases
+catalog_db_path: data/lineage_catalog.duckdb
+

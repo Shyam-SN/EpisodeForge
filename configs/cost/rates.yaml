@@ -1,0 +1,8 @@
+# User-configurable cloud cost parameters
+# NOTE: Check current cloud provider pricing before financial reporting.
+compute_core_hour_usd: 0.045
+s3_standard_storage_gb_month_usd: 0.023
+s3_egress_gb_usd: 0.090
+s3_put_request_per_1k_usd: 0.005
+s3_get_request_per_10k_usd: 0.004
+
